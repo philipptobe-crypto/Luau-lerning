@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luau Lernprogramm - Interaktiv</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+
+        .lesson-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .lesson-item:hover {
+            transform: translateX(5px);
+            border-color: #667eea;
+        }
+
+        .lesson-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .lesson-number {
+            font-weight: bold;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .lesson-title {
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .lesson-content {
+            display: none;
+        }
+
+        .lesson-content.active {
+            display: block;
+        }
+
+        .lesson-header {
+            margin-bottom: 25px;
+        }
+
+        .lesson-header h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .lesson-description {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .theory-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .theory-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .code-example {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+
+        .code-example .comment {
+            color: #6a9955;
+        }
+
+        .code-example .keyword {
+            color: #569cd6;
+        }
+
+        .code-example .string {
+            color: #ce9178;
+        }
+
+        .code-example .number {
+            color: #b5cea8;
+        }
+
+        .compiler-section {
+            margin-top: 30px;
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .compiler-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .compiler-header h3 {
+            margin: 0;
+        }
+
+        .run-button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .run-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .clear-button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+
+        .clear-button:hover {
+            background: #ff5252;
+        }
+
+        .code-editor {
+            width: 100%;
+            height: 250px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            border: none;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            resize: vertical;
+        }
+
+        .output-section {
+            background: #f5f5f5;
+            padding: 15px;
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .output-line {
+            margin: 5px 0;
+            padding: 3px;
+        }
+
+        .output-success {
+            color: #4caf50;
+        }
+
+        .output-error {
+            color: #f44336;
+        }
+
+        .output-info {
+            color: #2196f3;
+        }
+
+        .exercise-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .exercise-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .tip-box {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .tip-box h4 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Luau Lernprogramm</h1>
+            <p>Lerne Luau von Grund auf mit interaktiven Lektionen und einem integrierten Compiler</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <h3 style="margin-bottom: 15px; color: #667eea;">Lektionen</h3>
+                <div class="lesson-list" id="lessonList"></div>
+            </div>
+
+            <div class="content-area" id="contentArea"></div>
+        </div>
+    </div>
+
+    <script>
+        const lessons = [
+            {
+                id: 1,
+                title: "Einführung in Luau",
+                description: "Was ist Luau und warum sollten wir es lernen?",
+                theory: `
+                    <h3>Was ist Luau?</h3>
+                    <p>Luau ist eine schnelle, kleine und embeddable Skriptsprache, die von Roblox entwickelt wurde. Sie basiert auf Lua 5.1, bietet aber viele Verbesserungen:</p>
+                    <ul>
+                        <li><strong>Bessere Performance:</strong> Luau ist deutlich schneller als Standard-Lua</li>
+                        <li><strong>Type-Checking:</strong> Optional statische Typisierung</li>
+                        <li><strong>Moderne Features:</strong> Neue Syntax und Funktionen</li>
+                        <li><strong>Bessere Fehlerbehandlung:</strong> Klarere Fehlermeldungen</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Dein erstes Luau-Programm!</span>
+<span class="keyword">print</span>(<span class="string">"Hallo, Luau!"</span>)
+
+<span class="comment">-- Luau ist einfach zu lernen</span>
+<span class="keyword">local</span> willkommen = <span class="string">"Willkommen zum Luau-Kurs"</span>
+<span class="keyword">print</span>(willkommen)`,
+                exercise: "Schreibe ein Programm, das deinen Namen ausgibt!",
+                starterCode: `-- Schreibe hier deinen Code\nprint("Dein Name hier")`,
+                tip: "Verwende print() um Text auszugeben. Text muss in Anführungszeichen stehen!"
+            },
+            {
+                id: 2,
+                title: "Variablen und Datentypen",
+                description: "Lerne, wie man Daten speichert und verwendet",
+                theory: `
+                    <h3>Variablen in Luau</h3>
+                    <p>Variablen speichern Werte. In Luau verwenden wir <code>local</code> für lokale Variablen:</p>
+                    <ul>
+                        <li><strong>Numbers:</strong> Ganze Zahlen und Dezimalzahlen</li>
+                        <li><strong>Strings:</strong> Text in "Anführungszeichen"</li>
+                        <li><strong>Booleans:</strong> true oder false</li>
+                        <li><strong>nil:</strong> "Nichts" oder "kein Wert"</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Zahlen</span>
+<span class="keyword">local</span> alter = <span class="number">25</span>
+<span class="keyword">local</span> pi = <span class="number">3.14159</span>
+
+<span class="comment">-- Strings (Text)</span>
+<span class="keyword">local</span> name = <span class="string">"Anna"</span>
+<span class="keyword">local</span> stadt = <span class="string">"Berlin"</span>
+
+<span class="comment">-- Booleans</span>
+<span class="keyword">local</span> istStudent = <span class="keyword">true</span>
+<span class="keyword">local</span> hatFuehrerschein = <span class="keyword">false</span>
+
+<span class="keyword">print</span>(name, alter, istStudent)`,
+                exercise: "Erstelle Variablen für deinen Namen, Alter und Lieblingsfarbe. Gib sie alle aus!",
+                starterCode: `-- Erstelle deine Variablen hier\nlocal meinName = \nlocal meinAlter = \nlocal lieblingsFarbe = \n\n-- Gib sie aus\nprint(meinName, meinAlter, lieblingsFarbe)`,
+                tip: "Vergiss nicht 'local' vor dem Variablennamen! Strings brauchen Anführungszeichen, Zahlen nicht."
+            },
+            {
+                id: 3,
+                title: "Mathematische Operationen",
+                description: "Rechnen mit Luau",
+                theory: `
+                    <h3>Rechenoperationen</h3>
+                    <p>Luau kann wie ein Taschenrechner verwendet werden:</p>
+                    <ul>
+                        <li><strong>+</strong> Addition</li>
+                        <li><strong>-</strong> Subtraktion</li>
+                        <li><strong>*</strong> Multiplikation</li>
+                        <li><strong>/</strong> Division</li>
+                        <li><strong>^</strong> Potenz</li>
+                        <li><strong>%</strong> Modulo (Rest der Division)</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Grundrechenarten</span>
+<span class="keyword">local</span> summe = <span class="number">10</span> + <span class="number">5</span>
+<span class="keyword">local</span> differenz = <span class="number">10</span> - <span class="number">5</span>
+<span class="keyword">local</span> produkt = <span class="number">10</span> * <span class="number">5</span>
+<span class="keyword">local</span> quotient = <span class="number">10</span> / <span class="number">5</span>
+
+<span class="keyword">print</span>(<span class="string">"Summe:"</span>, summe)
+<span class="keyword">print</span>(<span class="string">"Differenz:"</span>, differenz)
+
+<span class="comment">-- Potenz und Modulo</span>
+<span class="keyword">local</span> potenz = <span class="number">2</span> ^ <span class="number">3</span>  <span class="comment">-- 2 hoch 3 = 8</span>
+<span class="keyword">local</span> rest = <span class="number">10</span> % <span class="number">3</span>    <span class="comment">-- Rest von 10 / 3 = 1</span>
+<span class="keyword">print</span>(<span class="string">"Potenz:"</span>, potenz, <span class="string">"Rest:"</span>, rest)`,
+                exercise: "Berechne die Fläche eines Rechtecks mit Länge 15 und Breite 8. Gib das Ergebnis aus!",
+                starterCode: `-- Berechne die Fläche\nlocal laenge = 15\nlocal breite = 8\nlocal flaeche = \n\nprint("Die Fläche ist:", flaeche)`,
+                tip: "Fläche = Länge × Breite. Verwende den * Operator für Multiplikation!"
+            },
+            {
+                id: 4,
+                title: "Strings und Verkettung",
+                description: "Arbeiten mit Text",
+                theory: `
+                    <h3>String-Operationen</h3>
+                    <p>Strings sind Texte. Wir können sie verbinden und manipulieren:</p>
+                    <ul>
+                        <li><strong>..</strong> Verkettung (Zusammenfügen)</li>
+                        <li><strong>#string</strong> Länge eines Strings</li>
+                        <li><strong>string.upper()</strong> In Großbuchstaben</li>
+                        <li><strong>string.lower()</strong> In Kleinbuchstaben</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Strings verketten</span>
+<span class="keyword">local</span> vorname = <span class="string">"Max"</span>
+<span class="keyword">local</span> nachname = <span class="string">"Mustermann"</span>
+<span class="keyword">local</span> vollname = vorname .. <span class="string">" "</span> .. nachname
+<span class="keyword">print</span>(vollname)
+
+<span class="comment">-- String-Funktionen</span>
+<span class="keyword">local</span> text = <span class="string">"Hallo Welt"</span>
+<span class="keyword">print</span>(<span class="string">"Länge:"</span>, #text)
+<span class="keyword">print</span>(<span class="string">"Groß:"</span>, string.upper(text))
+<span class="keyword">print</span>(<span class="string">"Klein:"</span>, string.lower(text))`,
+                exercise: "Erstelle einen Begrüßungstext mit deinem Namen und Alter!",
+                starterCode: `local name = "Dein Name"\nlocal alter = 0\nlocal gruss = \n\nprint(gruss)`,
+                tip: "Verwende .. um Strings zu verbinden. Beispiel: 'Hallo' .. ' ' .. 'Welt'"
+            },
+            {
+                id: 5,
+                title: "If-Bedingungen",
+                description: "Entscheidungen im Code treffen",
+                theory: `
+                    <h3>Bedingte Anweisungen</h3>
+                    <p>Mit if-Bedingungen kann das Programm Entscheidungen treffen:</p>
+                    <ul>
+                        <li><strong>if</strong> condition <strong>then</strong> - Wenn Bedingung wahr ist</li>
+                        <li><strong>elseif</strong> - Alternative Bedingung</li>
+                        <li><strong>else</strong> - Wenn keine Bedingung zutrifft</li>
+                        <li><strong>end</strong> - Beendet die if-Anweisung</li>
+                    </ul>
+                    <p>Vergleichsoperatoren: ==, ~=, &lt;, &gt;, &lt;=, &gt;=</p>
+                `,
+                example: `<span class="comment">-- Einfache if-Bedingung</span>
+<span class="keyword">local</span> alter = <span class="number">20</span>
+
+<span class="keyword">if</span> alter >= <span class="number">18</span> <span class="keyword">then</span>
+    <span class="keyword">print</span>(<span class="string">"Du bist volljährig"</span>)
+<span class="keyword">else</span>
+    <span class="keyword">print</span>(<span class="string">"Du bist minderjährig"</span>)
+<span class="keyword">end</span>
+
+<span class="comment">-- Mehrere Bedingungen</span>
+<span class="keyword">local</span> punkte = <span class="number">75</span>
+
+<span class="keyword">if</span> punkte >= <span class="number">90</span> <span class="keyword">then</span>
+    <span class="keyword">print</span>(<span class="string">"Note: Sehr gut"</span>)
+<span class="keyword">elseif</span> punkte >= <span class="number">75</span> <span class="keyword">then</span>
+    <span class="keyword">print</span>(<span class="string">"Note: Gut"</span>)
+<span class="keyword">else</span>
+    <span class="keyword">print</span>(<span class="string">"Note: Befriedigend"</span>)
+<span class="keyword">end</span>`,
+                exercise: "Schreibe ein Programm, das prüft ob eine Zahl positiv, negativ oder null ist!",
+                starterCode: `local zahl = -5\n\nif zahl > 0 then\n    \nelseif zahl < 0 then\n    \nelse\n    \nend`,
+                tip: "Verwende >, < und == zum Vergleichen. ~= bedeutet 'ungleich'."
+            },
+            {
+                id: 6,
+                title: "Schleifen - While",
+                description: "Code wiederholen mit while",
+                theory: `
+                    <h3>While-Schleifen</h3>
+                    <p>While-Schleifen wiederholen Code, solange eine Bedingung wahr ist:</p>
+                    <ul>
+                        <li><strong>while</strong> condition <strong>do</strong> - Solange Bedingung wahr</li>
+                        <li>Code wird wiederholt ausgeführt</li>
+                        <li><strong>end</strong> - Beendet die Schleife</li>
+                        <li>⚠️ Vorsicht vor Endlosschleifen!</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Zählen von 1 bis 5</span>
+<span class="keyword">local</span> zaehler = <span class="number">1</span>
+
+<span class="keyword">while</span> zaehler <= <span class="number">5</span> <span class="keyword">do</span>
+    <span class="keyword">print</span>(<span class="string">"Durchgang:"</span>, zaehler)
+    zaehler = zaehler + <span class="number">1</span>
+<span class="keyword">end</span>
+
+<span class="comment">-- Countdown</span>
+<span class="keyword">local</span> countdown = <span class="number">5</span>
+
+<span class="keyword">while</span> countdown > <span class="number">0</span> <span class="keyword">do</span>
+    <span class="keyword">print</span>(countdown)
+    countdown = countdown - <span class="number">1</span>
+<span class="keyword">end</span>
+<span class="keyword">print</span>(<span class="string">"Start!"</span>)`,
+                exercise: "Erstelle eine Schleife, die die geraden Zahlen von 2 bis 10 ausgibt!",
+                starterCode: `local zahl = 2\n\nwhile zahl <= 10 do\n    \n    \nend`,
+                tip: "Erhöhe die Zahl in jedem Durchgang um 2 mit: zahl = zahl + 2"
+            },
+            {
+                id: 7,
+                title: "Schleifen - For",
+                description: "Elegante Wiederholungen mit for",
+                theory: `
+                    <h3>For-Schleifen</h3>
+                    <p>For-Schleifen sind ideal für eine bestimmte Anzahl von Wiederholungen:</p>
+                    <ul>
+                        <li><strong>for</strong> i = start, ende, schritt <strong>do</strong></li>
+                        <li>i ist die Zählvariable</li>
+                        <li>start: Startwert</li>
+                        <li>ende: Endwert</li>
+                        <li>schritt: Optional, Standard ist 1</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Zahlen von 1 bis 5</span>
+<span class="keyword">for</span> i = <span class="number">1</span>, <span class="number">5</span> <span class="keyword">do</span>
+    <span class="keyword">print</span>(<span class="string">"i ="</span>, i)
+<span class="keyword">end</span>
+
+<span class="comment">-- Rückwärts zählen</span>
+<span class="keyword">for</span> i = <span class="number">10</span>, <span class="number">1</span>, -<span class="number">1</span> <span class="keyword">do</span>
+    <span class="keyword">print</span>(i)
+<span class="keyword">end</span>
+
+<span class="comment">-- Nur gerade Zahlen</span>
+<span class="keyword">for</span> i = <span class="number">2</span>, <span class="number">10</span>, <span class="number">2</span> <span class="keyword">do</span>
+    <span class="keyword">print</span>(<span class="string">"Gerade:"</span>, i)
+<span class="keyword">end</span>`,
+                exercise: "Erstelle das kleine 1x1 für die Zahl 7 (7x1 bis 7x10)!",
+                starterCode: `local zahl = 7\n\nfor i = 1, 10 do\n    \nend`,
+                tip: "Berechne in der Schleife: zahl * i und gib das Ergebnis aus!"
+            },
+            {
+                id: 8,
+                title: "Funktionen",
+                description: "Wiederverwendbaren Code erstellen",
+                theory: `
+                    <h3>Funktionen definieren</h3>
+                    <p>Funktionen sind Codeblöcke, die man wiederverwenden kann:</p>
+                    <ul>
+                        <li><strong>local function</strong> name(parameter)</li>
+                        <li>Parameter sind optionale Eingabewerte</li>
+                        <li><strong>return</strong> gibt einen Wert zurück</li>
+                        <li><strong>end</strong> beendet die Funktion</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Einfache Funktion</span>
+<span class="keyword">local function</span> begruesse()
+    <span class="keyword">print</span>(<span class="string">"Hallo!"</span>)
+<span class="keyword">end</span>
+
+begruesse()  <span class="comment">-- Funktion aufrufen</span>
+
+<span class="comment">-- Funktion mit Parametern</span>
+<span class="keyword">local function</span> begruesse_person(name)
+    <span class="keyword">print</span>(<span class="string">"Hallo"</span>, name, <span class="string">"!"</span>)
+<span class="keyword">end</span>
+
+begruesse_person(<span class="string">"Anna"</span>)
+begruesse_person(<span class="string">"Max"</span>)
+
+<span class="comment">-- Funktion mit Rückgabewert</span>
+<span class="keyword">local function</span> addiere(a, b)
+    <span class="keyword">return</span> a + b
+<span class="keyword">end</span>
+
+<span class="keyword">local</span> ergebnis = addiere(<span class="number">5</span>, <span class="number">3</span>)
+<span class="keyword">print</span>(<span class="string">"Ergebnis:"</span>, ergebnis)`,
+                exercise: "Erstelle eine Funktion, die die Fläche eines Kreises berechnet (Formel: π * r²)!",
+                starterCode: `local function kreisflaeche(radius)\n    local pi = 3.14159\n    \nend\n\nprint("Fläche:", kreisflaeche(5))`,
+                tip: "Verwende return pi * radius * radius oder return pi * radius^2"
+            },
+            {
+                id: 9,
+                title: "Tables (Arrays)",
+                description: "Listen und Sammlungen",
+                theory: `
+                    <h3>Tables - Luaus Datenstrukturen</h3>
+                    <p>Tables sind wie Listen, die mehrere Werte speichern können:</p>
+                    <ul>
+                        <li>Erstellen: <code>local liste = {}</code></li>
+                        <li>Werte hinzufügen: <code>table.insert(liste, wert)</code></li>
+                        <li>Zugriff über Index: <code>liste[1]</code> (beginnt bei 1!)</li>
+                        <li>Länge: <code>#liste</code></li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Table erstellen</span>
+<span class="keyword">local</span> fruechte = {<span class="string">"Apfel"</span>, <span class="string">"Banane"</span>, <span class="string">"Orange"</span>}
+
+<span class="comment">-- Auf Elemente zugreifen</span>
+<span class="keyword">print</span>(fruechte[<span class="number">1</span>])  <span class="comment">-- Apfel</span>
+<span class="keyword">print</span>(fruechte[<span class="number">2</span>])  <span class="comment">-- Banane</span>
+
+<span class="comment">-- Element hinzufügen</span>
+table.insert(fruechte, <span class="string">"Kirsche"</span>)
+
+<span class="comment">-- Durch Table iterieren</span>
+<span class="keyword">for</span> i = <span class="number">1</span>, #fruechte <span class="keyword">do</span>
+    <span class="keyword">print</span>(i, fruechte[i])
+<span class="keyword">end</span>
+
+<span class="comment">-- Zahlen-Liste</span>
+<span class="keyword">local</span> zahlen = {<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>}
+<span class="keyword">print</span>(<span class="string">"Länge:"</span>, #zahlen)`,
+                exercise: "Erstelle eine Liste mit 5 Farben und gib jede Farbe mit ihrer Nummer aus!",
+                starterCode: `local farben = {"Rot", "Blau", }\n\nfor i = 1, #farben do\n    \nend`,
+                tip: "Verwende print(i .. ': ' .. farben[i]) um Nummer und Farbe auszugeben!"
+            },
+            {
+                id: 10,
+                title: "Tables (Dictionaries)",
+                description: "Key-Value Paare",
+                theory: `
+                    <h3>Dictionary-Tables</h3>
+                    <p>Tables können auch Schlüssel-Wert-Paare speichern (wie ein Wörterbuch):</p>
+                    <ul>
+                        <li>Erstellen: <code>{key = value}</code></li>
+                        <li>Zugriff: <code>table.key</code> oder <code>table["key"]</code></li>
+                        <li>Ideal für strukturierte Daten</li>
+                        <li>Kann Arrays und Dictionaries kombinieren</li>
+                    </ul>
+                `,
+                example: `<span class="comment">-- Dictionary erstellen</span>
+<span class="keyword">local</span> person = {
+    name = <span class="string">"Max"</span>,
+    alter = <span class="number">25</span>,
+    stadt = <span class="string">"Berlin"</span>
+}
+
+<span class="comment">-- Auf Werte zugreifen</span>
+<span class="keyword">print</span>(person.name)
+<span class="keyword">print</span>(person.alter)
+
+<span class="comment">-- Werte ändern</span>
+person.alter = <span class="number">26</span>
+person.beruf = <span class="string">"Entwickler"</span>
+
+<span class="comment">-- Durch Dictionary iterieren</span>
+<span class="keyword">for</span> key, value <span class="keyword">in</span> pairs(person) <span class="keyword">do</span>
+    <span class="keyword">print</span>(key, <span class="string">":"</span>, value)
+<span class="keyword">end</span>`,
+                exercise: "Erstelle ein Dictionary für ein Buch mit Titel, Autor und Seitenzahl!",
+                starterCode: `local buch = {\n    titel = ,\n    autor = ,\n    seiten = \n}\n\nprint("Buch:", buch.titel)\nprint("von", buch.autor)\nprint(buch.seiten, "Seiten")`,
+                tip: "Strings brauchen Anführungszeichen, Zahlen nicht!"
+            }
+        ];
+
+        let currentLesson = 0;
+        const completedLessons = new Set();
+
+        function initializeLessons() {
+            const lessonList = document.getElementById('lessonList');
+            const contentArea = document.getElementById('contentArea');
+
+            lessons.forEach((lesson, index) => {
+                const lessonItem = document.createElement('div');
+                lessonItem.className = 'lesson-item' + (index === 0 ? ' active' : '');
+                lessonItem.innerHTML = `
+                    <div class="lesson-number">Lektion ${lesson.id}</div>
+                    <div class="lesson-title">${lesson.title}</div>
+                `;
+                lessonItem.onclick = () => selectLesson(index);
+                lessonList.appendChild(lessonItem);
+
+                const lessonContent = document.createElement('div');
+                lessonContent.className = 'lesson-content' + (index === 0 ? ' active' : '');
+                lessonContent.innerHTML = `
+                    <div class="lesson-header">
+                        <h2>${lesson.title}</h2>
+                        <p class="lesson-description">${lesson.description}</p>
+                    </div>
+
+                    <div class="theory-section">
+                        ${lesson.theory}
+                    </div>
+
+                    <h3 style="color: #667eea; margin: 20px 0 10px 0;">📝 Code-Beispiel:</h3>
+                    <div class="code-example">${lesson.example}</div>
+
+                    ${lesson.tip ? `
+                    <div class="tip-box">
+                        <h4>💡 Tipp:</h4>
+                        <p>${lesson.tip}</p>
+                    </div>
+                    ` : ''}
+
+                    ${lesson.exercise ? `
+                    <div class="exercise-box">
+                        <h4>✏️ Übung:</h4>
+                        <p>${lesson.exercise}</p>
+                    </div>
+                    ` : ''}
+
+                    <div class="compiler-section">
+                        <div class="compiler-header">
+                            <h3>💻 Interaktiver Luau Compiler</h3>
+                            <div>
+                                <button class="run-button" onclick="runCode(${index})">▶ Code Ausführen</button>
+                                <button class="clear-button" onclick="clearCode(${index})">🗑 Löschen</button>
+                            </div>
+                        </div>
+                        <textarea class="code-editor" id="editor-${index}" placeholder="Schreibe hier deinen Luau-Code...">${lesson.starterCode || ''}</textarea>
+                        <div class="output-section" id="output-${index}">
+                            <div class="output-line output-info">Bereit zum Ausführen... Klicke auf "Code Ausführen"!</div>
+                        </div>
+                    </div>
+                `;
+                contentArea.appendChild(lessonContent);
+            });
+
+            updateProgress();
+        }
+
+        function selectLesson(index) {
+            const lessonItems = document.querySelectorAll('.lesson-item');
+            const lessonContents = document.querySelectorAll('.lesson-content');
+
+            lessonItems.forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+
+            lessonContents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+
+            currentLesson = index;
+        }
+
+        function runCode(lessonIndex) {
+            const editor = document.getElementById(`editor-${lessonIndex}`);
+            const output = document.getElementById(`output-${lessonIndex}`);
+            const code = editor.value;
+
+            output.innerHTML = '<div class="output-line output-info">Führe Code aus...</div>';
+
+            try {
+                const result = executeLuauCode(code);
+                output.innerHTML = result;
+                
+                if (!result.includes('output-error')) {
+                    completedLessons.add(lessonIndex);
+                    updateProgress();
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="output-line output-error">❌ Fehler: ${error.message}</div>`;
+            }
+        }
+
+        function clearCode(lessonIndex) {
+            const editor = document.getElementById(`editor-${lessonIndex}`);
+            const output = document.getElementById(`output-${lessonIndex}`);
+            editor.value = lessons[lessonIndex].starterCode || '';
+            output.innerHTML = '<div class="output-line output-info">Editor geleert. Bereit für neuen Code!</div>';
+        }
+
+        function executeLuauCode(code) {
+            let outputLines = [];
+            let hasError = false;
+
+            const luauPrint = (...args) => {
+                const line = args.map(arg => {
+                    if (typeof arg === 'object' && arg !== null) {
+                        return JSON.stringify(arg);
+                    }
+                    return String(arg);
+                }).join(' ');
+                outputLines.push(`<div class="output-line output-success">► ${escapeHtml(line)}</div>`);
+            };
+
+            code = code.replace(/--.*$/gm, '');
+            
+            const transformedCode = code
+                .replace(/\bprint\s*\(/g, 'luauPrint(')
+                .replace(/\blocal\s+/g, 'let ')
+                .replace(/\bthen\b/g, '{')
+                .replace(/\bdo\b/g, '{')
+                .replace(/\bend\b/g, '}')
+                .replace(/\belseif\b/g, '} else if')
+                .replace(/\belse\b/g, '} else {')
+                .replace(/~=/g, '!=')
+                .replace(/\.\./g, '+')
+                .replace(/\bfunction\s+(\w+)\s*\((.*?)\)/g, 'function $1($2)')
+                .replace(/\blocal\s+function\s+(\w+)\s*\((.*?)\)/g, 'let $1 = function($2)')
+                .replace(/#(\w+)/g, '$1.length');
+
+            try {
+                const wrappedCode = `
+                    (function() {
+                        ${transformedCode}
+                    })();
+                `;
+                
+                eval(wrappedCode);
+
+                if (outputLines.length === 0) {
+                    outputLines.push('<div class="output-line output-info">✓ Code erfolgreich ausgeführt (keine Ausgabe)</div>');
+                }
+            } catch (error) {
+                hasError = true;
+                outputLines = [`<div class="output-line output-error">❌ Fehler: ${escapeHtml(error.message)}</div>`];
+            }
+
+            return outputLines.join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateProgress() {
+            const progress = (completedLessons.size / lessons.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        window.onload = initializeLessons;
+    </script>
+</body>
+</html>
